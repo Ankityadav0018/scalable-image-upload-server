@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudMedia | Premium Image Upload</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+            transform: scale(1.02);
+        }
+
+        .upload-area.dragging {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .upload-text {
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .upload-hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-area {
+            margin-top: 2rem;
+            display: none;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .status-success { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .status-error { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .link-container {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .link-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .loading {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .node-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 0.7rem;
+            background: var(--card-bg);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>CloudMedia</h1>
+                <p>Secure, optimized image delivery</p>
+            </div>
+
+            <div class="upload-area" id="dropZone">
+                <span class="upload-icon">🚀</span>
+                <p class="upload-text">Click or drag image to upload</p>
+                <p class="upload-hint">Supports JPG, PNG (Max 2MB)</p>
+                <input type="file" id="fileInput" accept="image/jpeg,image/png">
+            </div>
+
+            <button class="btn" id="uploadBtn" disabled>Process & Upload</button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Optimizing on server...</p>
+            </div>
+
+            <div class="result-area" id="resultArea">
+                <div id="statusBadge" class="status-badge"></div>
+                <div class="link-container">
+                    <span class="link-text" id="resultLink"></span>
+                    <button class="copy-btn" id="copyBtn">Copy</button>
+                </div>
+                <p id="processedBy" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;"></p>
+            </div>
+
+            <div class="footer">
+                &copy; 2026 MediaManager Architecture
+            </div>
+        </div>
+    </div>
+
+    <div class="node-info" id="nodeInfo">Node: Detecting...</div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const loading = document.getElementById('loading');
+        const resultArea = document.getElementById('resultArea');
+        const resultLink = document.getElementById('resultLink');
+        const statusBadge = document.getElementById('statusBadge');
+        const nodeInfo = document.getElementById('nodeInfo');
+        const processedBy = document.getElementById('processedBy');
+
+        let selectedFile = null;
+
+        // Fetch status to show backend node
+        fetch('/status')
+            .then(res => res.json())
+            .then(data => {
+                nodeInfo.textContent = `Node: ${data.node} | Service: ${data.service}`;
+            });
+
+        dropZone.onclick = () => fileInput.click();
+
+        dropZone.ondragover = (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragging');
+        };
+
+        dropZone.ondragleave = () => {
+            dropZone.classList.remove('dragging');
+        };
+
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragging');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        };
+
+        fileInput.onchange = (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        };
+
+        function handleFile(file) {
+            if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
+                alert('Only JPG and PNG images are allowed.');
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File size exceeds 2MB limit.');
+                return;
+            }
+            selectedFile = file;
+            dropZone.querySelector('.upload-text').textContent = file.name;
+            uploadBtn.disabled = false;
+            resultArea.style.display = 'none';
+        }
+
+        uploadBtn.onclick = async () => {
+            if (!selectedFile) return;
+
+            uploadBtn.style.display = 'none';
+            loading.style.display = 'block';
+            resultArea.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showResult(true, result.data.link, result.data.processed_by);
+                } else {
+                    showResult(false, result.error || result.detail || 'Upload failed');
+                }
+            } catch (error) {
+                showResult(false, 'Network error occurred');
+            } finally {
+                loading.style.display = 'none';
+                uploadBtn.style.display = 'block';
+            }
+        };
+
+        function showResult(success, message, node) {
+            resultArea.style.display = 'block';
+            if (success) {
+                statusBadge.textContent = 'Upload Successful';
+                statusBadge.className = 'status-badge status-success';
+                resultLink.textContent = message;
+                processedBy.textContent = `Optimized and served by Node ${node}`;
+            } else {
+                statusBadge.textContent = 'Error';
+                statusBadge.className = 'status-badge status-error';
+                resultLink.textContent = message;
+                processedBy.textContent = '';
+            }
+        }
+
+        document.getElementById('copyBtn').onclick = () => {
+            navigator.clipboard.writeText(resultLink.textContent);
+            const originalText = document.getElementById('copyBtn').textContent;
+            document.getElementById('copyBtn').textContent = 'Copied!';
+            setTimeout(() => {
+                document.getElementById('copyBtn').textContent = originalText;
+            }, 2000);
+        };
+    </script>
+</body>
+</html>

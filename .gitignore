@@ -1,0 +1,22 @@
+# Environments
+venv/
+.venv/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Logs
+nginx/*.log
+*.log
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
